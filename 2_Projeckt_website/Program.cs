@@ -1,6 +1,7 @@
+using _2._Sem_Project_Eksamen_System.EFservices;
 using _2._Sem_Project_Eksamen_System.Interfaces;
 using _2._Sem_Project_Eksamen_System.Models1;
-using _2._Sem_Project_Eksamen_System.EFservices;
+using Microsoft.EntityFrameworkCore;
 
 namespace _2._Sem_Project_Eksamen_System
 {
@@ -31,6 +32,9 @@ namespace _2._Sem_Project_Eksamen_System
             builder.Services.AddScoped<IRoomsToExams, EFRoomsToExamService>();
             builder.Services.AddScoped<IStudentsToExams, EFStudentsToExamService>();
 
+            builder.Services.AddDbContext<EksamensDBContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("EksamensDBCornection")));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
