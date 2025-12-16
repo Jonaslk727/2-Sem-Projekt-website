@@ -11,12 +11,17 @@ public partial class EksamensDBContext : DbContext
     {
         connectionString = conf.GetConnectionString("EksamensDBCornection");
     }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
+    // NY: constructor til tests (og generelt)
+    public EksamensDBContext(DbContextOptions<EksamensDBContext> options)
+        : base(options)
     {
-        //options.UseSqlServer (@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=RegistrationDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False");
-        //Finder appsettings.json connection string
-        options.UseSqlServer(connectionString);
+    }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // NY: hvis options allerede er sat (fx InMemory i tests), så gør ingenting her
+        if (optionsBuilder.IsConfigured) return;
+
+        optionsBuilder.UseSqlServer(connectionString);
     }
 
     public virtual DbSet<Class> Classes { get; set; }
