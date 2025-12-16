@@ -1,0 +1,198 @@
+﻿@* 
+    Pages/_Layout.cshtml
+    - Sidebar with slim Bootstrap icons
+    - Active nav item subtly highlighted
+*@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Exam Planning Application for Zealand" />
+    <link rel="icon" href="~/images/zealand-favicon.ico" type="image/x-icon" />
+    <title>@ViewData["Title"] - Exam Planning</title>
+    <link href="~/css/site.css" rel="stylesheet" />
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <style>
+        /* Make all sidebar icons consistently slim */
+        .nav-item .bi {
+            font-size: 1.25rem;
+            font-weight: 300;
+        }
+
+        /* Base nav item styling hook (augmenting your existing .nav-item) */
+        .nav-list .nav-item {
+            position: relative;
+            border-radius: 8px;
+            padding: 0.55rem 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+            .nav-list .nav-item .icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 1.5rem;
+            }
+
+            .nav-list .nav-item .nav-text {
+                font-size: 0.9rem;
+            }
+
+            /* Hover state - very subtle */
+            .nav-list .nav-item:hover {
+                background: rgba(244, 232, 124, 0.10);
+            }
+
+        /* ACTIVE STATE – highlight background + left bar, keep text/icon black */
+        .nav-item-active {
+            background: rgba(244, 232, 124, 0.45); /* highlight background */
+        }
+
+            .nav-item-active::before {
+                content: "";
+                position: absolute;
+                left: -6px;
+                top: 6px;
+                bottom: 6px;
+                width: 3px;
+                border-radius: 0 4px 4px 0;
+                background: #d6c144; /* visible gold left bar */
+            }
+
+            /* REMOVE color override so text + icons stay black */
+            .nav-item-active .nav-text,
+            .nav-item-active .bi {
+                color: inherit; /* stays default black */
+            }
+    </style>
+</head>
+
+<body>
+    @{
+        // Current Razor Page, e.g. "/Index", "/Eksamner/GetEksamner"
+        var currentPage = (ViewContext.RouteData.Values["page"] as string) ?? "";
+    }
+
+    <div class="app-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" role="navigation" aria-label="Hovednavigation">
+            <div class="sidebar-flag" aria-hidden="true"></div>
+
+            <div class="sidebar-content">
+
+                <!-- BRAND -->
+                <div class="brand" role="banner">
+                    <div class="brand-logo" aria-hidden="true">
+                        <svg width="32" height="32" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="#F4E87C" />
+                            <path d="M28 32 L72 32 L72 38 L38 68 L72 68 L72 74 L28 74 L28 68 L62 38 L28 38 Z"
+                                  fill="#000" />
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <div style="font-weight:600; font-size:0.95em;">Zealand</div>
+                        <div style="font-size:0.75em; opacity:0.8; margin-top:-2px;">Exam Management</div>
+                    </div>
+                </div>
+
+                <!-- NAVIGATION -->
+                <nav class="nav-list" role="menu">
+
+                    <a class="nav-item@(currentPage == "/Index" ? " nav-item-active" : "")"
+                       asp-page="/Index" role="menuitem">
+                        <span class="icon">
+                            <i class="bi bi-house-door"></i>
+                        </span>
+                        <span class="nav-text">Home</span>
+                    </a>
+
+                    <a class="nav-item@(currentPage == "/Eksamner/GetEksamner" ? " nav-item-active" : "")"
+                       asp-page="/Eksamner/GetEksamner" role="menuitem">
+                        <span class="icon">
+                            <i class="bi bi-list-task"></i>
+                        </span>
+                        <span class="nav-text">Exams</span>
+                    </a>
+
+                    <a class="nav-item@(currentPage == "/Students/GetStudent" ? " nav-item-active" : "")"
+                       asp-page="/Students/GetStudent" role="menuitem">
+                        <span class="icon">
+                            <i class="bi bi-person-lines-fill"></i>
+                        </span>
+                        <span class="nav-text">Students</span>
+                    </a>
+
+                    <a class="nav-item@(currentPage == "/Rooms/Index" ? " nav-item-active" : "")"
+                       asp-page="/Rooms/Index" role="menuitem">
+                        <span class="icon">
+                            <i class="bi bi-door-closed"></i>
+                        </span>
+                        <span class="nav-text">Rooms</span>
+                    </a>
+
+                    <a class="nav-item@(currentPage == "/Teachers/Index" ? " nav-item-active" : "")"
+                       asp-page="/Teachers/Index" role="menuitem">
+                        <span class="icon">
+                            <i class="bi bi-person-workspace"></i>
+                        </span>
+                        <span class="nav-text">Teachers</span>
+                    </a>
+
+                    <a class="nav-item@(currentPage == "/Classes/Index" ? " nav-item-active" : "")"
+                       asp-page="/Classes/Index" role="menuitem">
+                        <span class="icon">
+                            <i class="bi bi-journal-bookmark"></i>
+                        </span>
+                        <span class="nav-text">Classes</span>
+                    </a>
+
+                </nav>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+
+            <!-- HEADER -->
+            <header class="app-header">
+                <div class="header-left">
+                    <h1 class="page-title">@ViewData["Title"]</h1>
+                </div>
+                <div class="header-right">
+                    @* Placeholder for future user menu *@
+                </div>
+            </header>
+
+            <!-- PAGE CONTENT -->
+            <main class="page-body" role="main">
+                @RenderBody()
+            </main>
+
+            <!-- FOOTER -->
+            <footer class="app-footer">
+                <div class="footer-inner">
+                    <div class="footer-accent"></div>
+                    <div class="footer-text">© Zealand - Exam Management</div>
+                </div>
+            </footer>
+
+        </div>
+
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

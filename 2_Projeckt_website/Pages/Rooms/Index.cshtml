@@ -1,0 +1,172 @@
+﻿@page
+@model _2._Sem_Project_Eksamen_System.Pages.Rooms.IndexModel
+@using _2._Sem_Project_Eksamen_System.ViewModels
+@{
+    ViewData["Title"] = "Rooms";
+}
+
+<partial name="~/Pages/Shared/_PageHeader.cshtml"
+         model='new PageHeaderModel("Room Overview", "View, edit and manage all rooms")' />
+
+<div class="mb-3">
+    @await Html.PartialAsync("_CreateButton", new CreateButtonModel
+    {
+        Page = "./Create",
+        Text = "Create New Room"
+        })
+</div>
+
+<form method="get" class="mb-3">
+    <div class="input-group" style="max-width:420px;">
+        <input class="form-control" type="text" name="Filter.FilterByName" value="@Model.Filter?.FilterByName" placeholder="Search by name..." />
+        <button class="btn btn-outline-secondary" type="submit">Search</button>
+        <a asp-page="/Rooms/Index" class="btn ms-3 btn-outline-secondary btn-sm">Full List</a>
+    </div>
+</form>
+
+
+<table class="table table-sm align-middle">
+    <thead>
+        <tr>
+            <th>Room</th>
+            <th>Capacity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.Rooms)
+        {
+            var rowId = $"room-{r.RoomId}";
+            <tr>
+                <td>@r.Name</td>
+                <td>@(r.Capacity?.ToString() ?? "-")</td>
+                <td class="action-buttons">
+                    <button type="button"
+                            class="btn-toggle btn-details toggle-upcoming"
+                            data-room-id="@r.RoomId"
+                            aria-expanded="false"
+                            aria-controls="@($"{rowId}-upcoming")"
+                            title="Show upcoming exams">
+                        <span class="btn-icon">📋</span>
+                        Details
+                        <span class="toggle-arrow">▸</span>
+                    </button>
+                    <a asp-page="./Edit" asp-route-id="@r.RoomId" class="btn-toggle btn-edit">Edit</a>
+                    <a asp-page="./Delete" asp-route-id="@r.RoomId" class="btn-toggle btn-delete">Delete</a>
+                </td>
+            </tr>
+            <tr id="@($"{rowId}-upcoming")" class="d-none">
+                <td colspan="2">
+                    <div class="upcoming-container small text-muted">Loading…</div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<style>
+    /* ACTION BUTTONS STYLING ONLY - FOR ROOMS PAGE */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    .btn-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        white-space: nowrap;
+        height: 36px;
+        border: 1px solid transparent;
+        box-sizing: border-box;
+        cursor: pointer;
+    }
+
+    .toggle-arrow {
+        margin-left: 0.25rem;
+        font-weight: bold;
+    }
+
+    .btn-details {
+        background-color: #f0f9ff;
+        color: #0c6c8c;
+        border-color: #b6d7e8;
+    }
+
+    .btn-edit {
+        background-color: #e7f1ff;
+        color: #0066cc;
+        border-color: #b6d7e8;
+    }
+
+    .btn-delete {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .btn-toggle:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-icon {
+        font-size: 0.875rem;
+    }
+
+    /* Style for the toggle-upcoming button to match others */
+    .toggle-upcoming {
+        font-family: inherit;
+        font-size: 0.875rem;
+    }
+
+    @@media (max-width: 768px) {
+        .action-buttons {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.toggle-upcoming');
+            if (!btn) return;
+
+            const roomId = btn.dataset.roomId;
+            const detailsRow = document.getElementById(`room-${roomId}-upcoming`);
+            const box = detailsRow.querySelector('.upcoming-container');
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            const arrowSpan = btn.querySelector('.toggle-arrow');
+
+            if (expanded) {
+                detailsRow.classList.add('d-none');
+                btn.setAttribute('aria-expanded', 'false');
+                arrowSpan.textContent = '▸';
+                return;
+            }
+
+            detailsRow.classList.remove('d-none');
+            btn.setAttribute('aria-expanded', 'true');
+            arrowSpan.textContent = '▾';
+
+            if (!detailsRow.dataset.loaded) {
+                box.textContent = 'Loading…';
+                const url = '@Url.Page("Index", "Upcoming")' + `&roomId=${encodeURIComponent(roomId)}`;
+                const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                box.innerHTML = await resp.text();
+                detailsRow.dataset.loaded = '1';
+            }
+        });
+    </script>
+}

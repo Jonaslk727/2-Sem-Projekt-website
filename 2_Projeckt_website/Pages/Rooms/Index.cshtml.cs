@@ -1,0 +1,57 @@
+﻿using _2._Sem_Project_Eksamen_System.Interfaces;
+using _2._Sem_Project_Eksamen_System.Models1;
+using _2._Sem_Project_Eksamen_System.Utils;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+
+namespace _2._Sem_Project_Eksamen_System.Pages.Rooms
+{
+    public class IndexModel : PageModel
+    {
+        private readonly ICRUDAsync<Room> _service;
+        private readonly EksamensDBContext _db;
+
+        public IEnumerable<Room> Rooms { get; set; } = [];
+
+        [BindProperty(SupportsGet = true)]
+        public GenericFilter? Filter { get; set; }
+
+        public IndexModel(ICRUDAsync<Room> service, EksamensDBContext db)
+        {
+            _service = service;
+            _db = db;
+        }
+
+        public async Task OnGetAsync()
+        {
+            if (Filter is not null && !string.IsNullOrWhiteSpace(Filter.FilterByName))
+            {
+                Rooms = await _service.GetAllAsync(Filter);
+            }
+            else
+            {
+                Rooms = await _service.GetAllAsync();
+            }
+        }
+        public PartialViewResult OnGetUpcoming(int roomId)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            // Hent kommende eksamener i dette rum (inkl. Class til visning)
+            var upcoming = _db.Exams
+                .Include(e => e.RoomsToExams)
+                .Include(e => e.Class)
+                .AsNoTracking()
+                .Where(e =>
+                    e.RoomsToExams.Any(re => re.RoomId == roomId) &&
+                    e.ExamStartDate != null &&
+                    e.ExamStartDate >= today)
+                .OrderBy(e => e.ExamStartDate)
+                .Take(10)
+                .ToList();
+
+            return Partial("_UpcomingExams", upcoming);
+        }
+    }
+}

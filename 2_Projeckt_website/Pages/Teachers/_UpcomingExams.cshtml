@@ -1,0 +1,42 @@
+﻿@model IEnumerable<_2._Sem_Project_Eksamen_System.Models1.Exam>
+
+@if (Model == null || !Model.Any())
+{
+    <div>No upcoming exams scheduled.</div>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 35%;">Exam</th>
+                <th style="width: 35%;">Date</th>
+                <th style="width: 30%;">Class</th>
+                <th style=" width:10%;">Details</th>
+                <th style="width: 10%;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Model)
+            {
+                <tr>
+                    <td>@e.ExamName</td>
+                    <td>
+                        @if (e.ExamStartDate.HasValue)
+                        {
+                            @e.ExamStartDate.Value.ToString("yyyy-MM-dd")
+                            @if (e.ExamEndDate.HasValue && e.ExamEndDate != e.ExamStartDate)
+                            {
+                                <span> - @e.ExamEndDate.Value.ToString("yyyy-MM-dd")</span>
+                            }
+                        }
+                    </td>
+                    <td>@(e.Class?.ClassName ?? "")</td>
+                    <td>
+                        <a asp-page="/Eksamner/Exam_Details" asp-route-id="@e.ExamId">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

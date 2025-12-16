@@ -1,0 +1,489 @@
+﻿@page
+@model _2._Sem_Project_Eksamen_System.Pages.Eksamner.GetEksamnerModel
+@using _2._Sem_Project_Eksamen_System.ViewModels
+@{
+    ViewData["Title"] = "Exam Overview";
+}
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Success!</strong> @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="page-body">
+    <div class="dashboard-container">
+        <partial name="~/Pages/Shared/_PageHeader.cshtml"
+                 model='new PageHeaderModel("Exam Overview", "View, edit and manage all exams")' />
+
+        <!-- SEARCH AND FILTER SECTION -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>Search & Filter</h2>
+            </div>
+            <div class="search-container">
+                <form method="get">
+                    <div class="search-form">
+                        <!-- Exam Name Filter -->
+                        <div class="form-group">
+                            <label for="Filter_FilterByName" class="form-label">Exam Name</label>
+                            <input type="text"
+                                   asp-for="Filter.FilterByName"
+                                   class="form-control compact-input"
+                                   placeholder="Exam name..." />
+                        </div>
+
+                        <!-- Class Filter -->
+                        <div class="form-group">
+                            <label for="Filter_FilterByClass" class="form-label">Class</label>
+                            <select asp-for="Filter.FilterByClass" class="form-control compact-input">
+                                <option value="">All Classes</option>
+                                @if (Model.AvailableClasses != null)
+                                {
+                                    foreach (var className in Model.AvailableClasses)
+                                    {
+                                        <option value="@className">@className</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Teacher Filter -->
+                        <div class="form-group">
+                            <label for="Filter_FilterByTeacher" class="form-label">Teacher</label>
+                            <select asp-for="Filter.FilterByTeacher" class="form-control compact-input">
+                                <option value="">All Teachers</option>
+                                @if (Model.AvailableTeachers != null)
+                                {
+                                    foreach (var teacherName in Model.AvailableTeachers)
+                                    {
+                                        <option value="@teacherName">@teacherName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Room Filter -->
+                        <div class="form-group">
+                            <label for="Filter_FilterByRoom" class="form-label">Room</label>
+                            <select asp-for="Filter.FilterByRoom" class="form-control compact-input">
+                                <option value="">All Rooms</option>
+                                @if (Model.AvailableRooms != null)
+                                {
+                                    foreach (var roomName in Model.AvailableRooms)
+                                    {
+                                        <option value="@roomName">@roomName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Examiner Filter -->
+                        <div class="form-group">
+                            <label for="Filter_FilterByExaminerName" class="form-label">Examiner</label>
+                            <input type="text"
+                                   name="Filter.FilterByExaminerName"
+                                   value="@(Model.Filter?.FilterByExaminerName ?? "")"
+                                   class="form-control compact-input"
+                                   placeholder="Examiner name..." />
+                        </div>
+
+                        <!-- Date Filters -->
+                        <div class="form-group">
+                            <label for="Filter_FilterByStartDate" class="form-label">Start Date</label>
+                            <input type="date"
+                                   name="Filter.FilterByStartDate"
+                                   value="@(Model.Filter?.FilterByStartDate?.ToString("yyyy-MM-dd") ?? "")"
+                                   class="form-control compact-input"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Filter_FilterByEndDate" class="form-label">End Date</label>
+                            <input type="date"
+                                   name="Filter.FilterByEndDate"
+                                   value="@(Model.Filter?.FilterByEndDate?.ToString("yyyy-MM-dd") ?? "")"
+                                   class="form-control compact-input"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="btn-icon">🔍</span>
+                            Search
+                        </button>
+                        <a asp-page="/Eksamner/GetEksamner" class="btn btn-secondary">
+                            <span class="btn-icon">🔄</span>
+                            Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TABLE DISPLAY SECTION -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>All Exams</h2>
+
+                <div class="header-actions d-flex gap-2">
+
+                    @await Html.PartialAsync("_CreateButton", new CreateButtonModel
+                    {
+                        Page = "/Eksamner/Create_Exam",
+                                        Text = "Add New Exam"
+                                        })
+                    <a asp-page="/Eksamner/Unresolved"
+                       class="btn btn-warning btn-sm d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Unresolved
+                    </a>
+                </div>
+            </div>
+        </div>
+
+            @{
+                var activeFilters = new List<string>();
+
+                if (!string.IsNullOrEmpty(Model.Filter.FilterByName))
+                    activeFilters.Add($"Name: {Model.Filter.FilterByName}");
+
+                if (!string.IsNullOrEmpty(Model.Filter.FilterByClass))
+                    activeFilters.Add($"Class: {Model.Filter.FilterByClass}");
+
+                if (!string.IsNullOrEmpty(Model.Filter.FilterByTeacher))
+                    activeFilters.Add($"Teacher: {Model.Filter.FilterByTeacher}");
+
+                if (!string.IsNullOrEmpty(Model.Filter.FilterByRoom))
+                    activeFilters.Add($"Room: {Model.Filter.FilterByRoom}");
+
+                if (!string.IsNullOrEmpty(Model.Filter.FilterByExaminerName))
+                    activeFilters.Add($"Examiner: {Model.Filter.FilterByExaminerName}");
+
+                if (Model.Filter.FilterByStartDate.HasValue)
+                    activeFilters.Add($"Start: {Model.Filter.FilterByStartDate.Value:dd-MM-yy}");
+
+                if (Model.Filter.FilterByEndDate.HasValue)
+                    activeFilters.Add($"End: {Model.Filter.FilterByEndDate.Value:dd-MM-yy}");
+            }
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Title</th>
+                            <th>Class</th>
+                            <th>Number of Students</th>
+                            <th class="actions-header">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Eksamner != null && Model.Eksamner.Any())
+                        {
+                            @*Made dates to be displayed in ordered farm*@
+                            foreach (var eksamen in Model.Eksamner.OrderBy(e => e.ExamStartDate))
+                            {
+                                <tr>
+                                    <td>@(eksamen.ExamStartDate?.ToString("dd-MM-yy") ?? "")</td>
+                                    <td>@eksamen.ExamName</td>
+                                    <td>
+                                        @if (eksamen.Class != null)
+                                        {
+                                            @eksamen.Class.ClassName
+                                        }
+                                        else
+                                        {
+                                            <span class="not-assigned">Not Assigned</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (eksamen.NumOfStud == 0 || eksamen.NumOfStud == null)
+                                        {
+                                            <p>@eksamen.StudentsToExams.Count</p>
+                                        }
+                                        else
+                                        {
+                                            <p>@eksamen.NumOfStud</p>
+                                        }
+                                    </td>
+                                    <td class="action-buttons">
+                                        <a asp-page="Exam_Details" asp-route-id="@eksamen.ExamId" class="btn-toggle btn-details">
+                                            <span class="btn-icon">📋</span>
+                                            Details
+                                        </a>
+                                        <a asp-page="./Edit_Exam" asp-route-id="@eksamen.ExamId" class="btn-toggle btn-edit">Edit</a>
+                                        <a asp-page="./Delete_Exam" asp-route-id="@eksamen.ExamId" class="btn-toggle btn-delete">Delete</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="no-data">
+                                    <div class="empty-state">
+                                        <span class="empty-icon">📝</span>
+                                        @if (!string.IsNullOrEmpty(Model.Filter.FilterByName))
+                                        {
+                                            <p>No exams found matching your search criteria</p>
+                                            <a asp-page="/Eksamner/GetEksamner" class="btn-toggle" role="menuitem">Show All Exams</a>
+                                        }
+                                        else
+                                        {
+                                            <p>No exams found in the system</p>
+                                            <a asp-page="/Eksamner/Create_Exam" class="btn-toggle" role="menuitem">Add First Exam</a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.btn-close').forEach(btn => {
+            btn.onclick = () => btn.closest('.alert').style.display = 'none';
+        });
+    </script>
+}
+<!-- Style Section Agains Added solution for breaking lines by adding fixed row height-->
+<style>
+    .search-container {
+        padding: 1.5rem;
+    }
+
+    .search-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+        .search-form .form-group {
+            margin-bottom: 0;
+        }
+
+        .search-form .form-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+    .compact-input {
+        height: 36px;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .filter-info {
+        background-color: #e8f4fd;
+        border: 1px solid #b6d7e8;
+        border-radius: 4px;
+        padding: 1rem;
+        margin: 1rem 1.5rem;
+    }
+
+        .filter-info p {
+            margin: 0;
+            color: #2c5aa0;
+        }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+
+    /* FIXED TABLE ROW AND CELL STYLING - PERFECT ALIGNMENT */
+    .data-table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        .data-table tr {
+            height: 60px; /* Consistent row height */
+        }
+
+        .data-table td {
+            padding: 0.75rem 0.5rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e5e7eb;
+            line-height: 1.2;
+        }
+
+        .data-table th {
+            padding: 1rem 0.5rem;
+            vertical-align: middle;
+            border-bottom: 2px solid #e5e7eb;
+            background-color: #f8fafc;
+        }
+
+    /* PERFECTLY ALIGNED ACTION BUTTONS */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        white-space: nowrap;
+        height: 100%;
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+    }
+
+    .btn-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        white-space: nowrap;
+        height: 36px;
+        border: 1px solid transparent;
+        box-sizing: border-box;
+    }
+
+    .btn-edit {
+        background-color: #e7f1ff;
+        color: #0066cc;
+        border-color: #b6d7e8;
+    }
+
+    .btn-details {
+        background-color: #f0f9ff;
+        color: #0c6c8c;
+        border-color: #b6d7e8;
+    }
+
+    .btn-delete {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .btn-toggle:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-icon {
+        font-size: 0.875rem;
+    }
+
+    .not-assigned {
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        opacity: 0.5;
+    }
+
+    /* FIXED DATE COLUMN - PREVENT WRAPPING */
+    .data-table td:nth-child(1) { /* Date column */
+        white-space: nowrap;
+        min-width: 90px;
+        font-weight: 500;
+    }
+
+    .actions-header {
+        text-align: center;
+        min-width: 200px;
+    }
+
+    /* ENSURE ALL TABLE CELLS HAVE SAME HEIGHT */
+    .data-table tbody td {
+        height: 60px;
+        box-sizing: border-box;
+    }
+
+    /* BUTTON STYLES FOR ADD NEW EXAM */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #0066cc;
+        color: white;
+        border: 1px solid #0052a3;
+    }
+
+        .btn-primary:hover {
+            background-color: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 102, 204, 0.3);
+        }
+
+    @@media (max-width: 768px) {
+        .search-form {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .action-buttons {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        .data-table td:nth-child(1) {
+            white-space: normal;
+            min-width: auto;
+        }
+
+        .data-table tr {
+            height: auto;
+        }
+
+        .data-table tbody td {
+            height: auto;
+        }
+    }
+</style>

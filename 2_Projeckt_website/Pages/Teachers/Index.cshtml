@@ -1,0 +1,80 @@
+﻿@page
+@model _2._Sem_Project_Eksamen_System.Pages.Teachers.IndexModel
+@using _2._Sem_Project_Eksamen_System.ViewModels
+@{
+    ViewData["Title"] = "Undervisere";
+}
+
+<partial name="~/Pages/Shared/_PageHeader.cshtml"
+         model='new PageHeaderModel("Teacher Overview", "View, edit and manage all teachers")' />
+
+<p>
+    @await Html.PartialAsync("_CreateButton", new CreateButtonModel
+    {
+        Page = "Create",
+        Text = "Create New Teacher"
+        })
+</p>
+
+<form method="get" class="mb-3">
+    <div class="input-group" style="max-width:420px;">
+        <input class="form-control" type="text" name="Filter.FilterByName" value="@Model.Filter?.FilterByName" placeholder="Search by name..." />
+        <button class="btn btn-outline-secondary" type="submit">Search</button>
+        <a asp-page="/Teachers/Index" class="btn ms-3 btn-outline-secondary btn-sm">Full List</a>
+    </div>
+</form>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Navn</th>
+            <th>Email</th>
+            <th style="width:150px;">Upcoming Exams</th>
+            <th style="width:90px;">Edit</th>
+            <th style="width:110px;">Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model.Teachers)
+        {
+            <tr>
+                <td>@t.TeacherName</td>
+                <td>@t.Email</td>
+                <td>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-info"
+                            onclick="toggleExams(@t.TeacherId)">
+                        View Exams
+                    </button>
+                </td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@t.TeacherId" class="btn-toggle btn-edit">Edit</a>
+                </td>
+                <td>
+                    <partial name="~/Pages/Shared/_DeleteButton.cshtml"
+                             model="@(("./Delete", t.TeacherId))" />
+                </td>
+            </tr>
+            <tr class="exam-row" id="exams-@t.TeacherId" style="display: none;">
+                <td colspan="5" class="bg-light p-3">
+                    <h6 class="mb-2">Upcoming Exams for @t.TeacherName:</h6>
+                    @{
+                        var upcomingExams = await Model.GetUpcomingExamsForTeacher(t.TeacherId);
+                    }
+                    <partial name="_UpcomingExams" model="upcomingExams" />
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function toggleExams(teacherId) {
+        var examRow = document.getElementById('exams-' + teacherId);
+        if (examRow.style.display === 'none') {
+            examRow.style.display = 'table-row';
+        } else {
+            examRow.style.display = 'none';
+        }
+    }
+</script>

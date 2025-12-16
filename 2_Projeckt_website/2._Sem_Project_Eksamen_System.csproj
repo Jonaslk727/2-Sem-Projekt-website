@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>_2._Sem_Project_Eksamen_System</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Pages\Elever\**" />
+    <Compile Remove="Pages\Fag\**" />
+    <Compile Remove="Pages\Lokaler\**" />
+    <Compile Remove="Pages\Undervisere\**" />
+    <Content Remove="Pages\Elever\**" />
+    <Content Remove="Pages\Fag\**" />
+    <Content Remove="Pages\Lokaler\**" />
+    <Content Remove="Pages\Undervisere\**" />
+    <EmbeddedResource Remove="Pages\Elever\**" />
+    <EmbeddedResource Remove="Pages\Fag\**" />
+    <EmbeddedResource Remove="Pages\Lokaler\**" />
+    <EmbeddedResource Remove="Pages\Undervisere\**" />
+    <None Remove="Pages\Elever\**" />
+    <None Remove="Pages\Fag\**" />
+    <None Remove="Pages\Lokaler\**" />
+    <None Remove="Pages\Undervisere\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.analyzers" Version="1.26.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="SQL-queries\" />
+  </ItemGroup>
+
+</Project>

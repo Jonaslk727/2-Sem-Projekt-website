@@ -1,0 +1,51 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using _2._Sem_Project_Eksamen_System.Interfaces;
+using _2._Sem_Project_Eksamen_System.Models1;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
+namespace _2._Sem_Project_Eksamen_System.Pages.Students
+{
+    public class GetStudentModel : PageModel
+    {
+        private readonly ICRUDAsync<Student> _service;
+
+        public IEnumerable<Student> Students { get; private set; } = Enumerable.Empty<Student>();
+        public List<string> AvailableClasses { get; private set; } = new List<string>();
+
+        [BindProperty(SupportsGet = true)]
+        public ExtendedStudentFilter Filter { get; set; } = new ExtendedStudentFilter();
+
+        public GetStudentModel(ICRUDAsync<Student> service) => _service = service;
+
+        public async Task<IActionResult> OnGetAsync()
+        {
+            Students = await _service.GetAllAsync(Filter) ?? Enumerable.Empty<Student>();
+
+            // Populate available classes for dropdown
+            await PopulateAvailableClasses();
+
+            return Page();
+        }
+
+        private async Task PopulateAvailableClasses()
+        //Filles the AvailableClasses list with distinct class names from all students
+        {
+            var allStudents = await _service.GetAllAsync(new ExtendedStudentFilter());
+            var studentClassLinks = allStudents
+
+                .Where(s => s.StudentsToClasses != null && s.StudentsToClasses.Any())
+                .SelectMany(s => s.StudentsToClasses);
+
+                var classNames = studentClassLinks
+                .Where(sc => sc.Class != null && !string.IsNullOrEmpty(sc.Class.ClassName))
+                .Select(sc => sc.Class!.ClassName)
+                .Distinct()
+                .OrderBy(className => className)
+                .ToList();
+            AvailableClasses = classNames;
+        }
+    }
+}

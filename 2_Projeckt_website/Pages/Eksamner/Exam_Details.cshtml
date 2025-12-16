@@ -1,0 +1,598 @@
+﻿@page "{id:int}"
+@using System.Linq
+@model _2._Sem_Project_Eksamen_System.Pages.Eksamner.Exam_DetailsModel
+@{
+    ViewData["Title"] = "Exam Details";
+    var exam = Model.Exam;
+    var reExam = Model.Exam.ReExam;
+}
+
+<div class="page-body">
+    <div class="dashboard-container">
+        <div class="welcome-card">
+            <h1>Exam Details</h1>
+            <p>Detailed information about the exam</p>
+        </div>
+
+        @if (exam == null)
+        {
+            <div class="section-card">
+                <div class="empty-state">
+                    <span class="empty-icon">⚠️</span>
+                    <p>Exam not found</p>
+                    <a asp-page="/Eksamner/GetEksamner" class="btn-toggle" role="menuitem">Back to Exam List</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- MAIN EXAM INFORMATION SECTION -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>Exam Information</h2>
+                </div>
+                <div class="details-container">
+                    <div class="info-card-grid">
+                        <!-- BASIC EXAM INFO CARD -->
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h3>Basic Information</h3>
+                            </div>
+                            <div class="info-card-content">
+                                <div class="info-row">
+                                    <span class="info-label">Exam ID</span>
+                                    <span class="info-value highlight">@exam.ExamId</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Exam Name</span>
+                                    <span class="info-value">@exam.ExamName</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Class</span>
+                                    <span class="info-value">
+                                        @if (exam.Class != null)
+                                        {
+                                            <span class="class-tag">@exam.Class.ClassName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="not-assigned">Not Assigned</span>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Description</span>
+                                    <span class="info-value description-text">@exam.Description</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EXAM DETAILS CARD -->
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h3>Exam Details</h3>
+                            </div>
+                            <div class="info-card-content">
+                                <div class="info-row">
+                                    <span class="info-label">Censor Type</span>
+                                    <span class="info-value type-badge">@exam.CensorType</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Format</span>
+                                    <span class="info-value format-badge">@exam.Format</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Exam Patrol</span>
+                                    <span class="info-value">
+                                        <span class="status-badge @(exam.ExamPatrol ? "status-active" : "status-inactive")">
+                                            @(exam.ExamPatrol ? "Yes" : "No")
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Is ReExam</span>
+                                    <span class="info-value">
+                                        <span class="status-badge @(exam.IsReExam ? "status-active" : "status-inactive")">
+                                            @(exam.IsReExam ? "Yes" : "No")
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Is Final Exam</span>
+                                    <span class="info-value">
+                                        <span class="status-badge @(exam.IsFinalExam ? "status-active" : "status-inactive")">
+                                            @(exam.IsFinalExam ? "Yes" : "No")
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DATES CARD -->
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h3>Dates & Schedule</h3>
+                            </div>
+                            <div class="info-card-content">
+                                <div class="info-row">
+                                    <span class="info-label">Start Date</span>
+                                    <span class="info-value date-value">@exam.ExamStartDate?.ToString("yyyy-MM-dd")</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">End Date</span>
+                                    <span class="info-value date-value">@exam.ExamEndDate?.ToString("yyyy-MM-dd")</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Delivery Date</span>
+                                    <span class="info-value date-value">@exam.DeliveryDate?.ToString("yyyy-MM-dd")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ROOMS CARD - FIXED: DUPLICATE ROOMS ISSUE RESOLVED -->
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h3>Assigned Rooms</h3>
+                            </div>
+                            <div class="info-card-content">
+                                @if (exam.RoomsToExams == null || !exam.RoomsToExams.Any())
+                                {
+                                    <div class="empty-state-small">
+                                        <span class="empty-icon">🚪</span>
+                                        <p>No rooms assigned to this exam</p>
+                                    </div>
+                                }
+                                else
+                                {   
+                                    <div class="rooms-list">
+                                        <!--Group by RoomId and select first occurrence to remove duplicates -->
+                                        <!-- This ensures each room appears only once even if there are multiple room-to-exam mappings -->
+                                        @foreach (var roomExam in exam.RoomsToExams.GroupBy(r => r.RoomId).Select(g => g.First()))
+                                        {
+                                            <div class="room-item">
+                                                <div class="room-header">
+                                                    <span class="room-name">@roomExam.Room?.Name</span>
+                                                </div>
+                                                <div class="room-details">
+                                                    @if (roomExam.Room?.Capacity > 0)
+                                                    {
+                                                        <div class="room-capacity">
+                                                            <span class="capacity-icon">👥</span>
+                                                            <span>Capacity: @roomExam.Room.Capacity</span>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="room-capacity">
+                                                            <span class="capacity-icon">👥</span>
+                                                            <span>Capacity: Not specified</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REEXAM SECTION -->
+            @if (reExam != null)
+            {
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>ReExam Information</h2>
+                    </div>
+                    <div class="details-container">
+                        <div class="info-card-grid">
+                            <div class="info-card">
+                                <div class="info-card-header">
+                                    <h3>ReExam Details</h3>
+                                </div>
+                                <div class="info-card-content">
+                                    <div class="info-row">
+                                        <span class="info-label">ReExam Name</span>
+                                        <span class="info-value">@reExam.ExamName</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Start Date</span>
+                                        <span class="info-value date-value">@reExam.ExamStartDate?.ToString("yyyy-MM-dd")</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">End Date</span>
+                                        <span class="info-value date-value">@reExam.ExamEndDate?.ToString("yyyy-MM-dd")</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Delivery Date</span>
+                                        <span class="info-value date-value">@reExam.DeliveryDate?.ToString("yyyy-MM-dd")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- TEACHERS SECTION -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>Assigned Teachers</h2>
+                </div>
+                <div class="table-container">
+                    @if (exam.TeachersToExams == null || !exam.TeachersToExams.Any())
+                    {
+                        <div class="empty-state">
+                            <span class="empty-icon">👨‍🏫</span>
+                            <p>No teachers assigned to this exam</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tte in exam.TeachersToExams)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(tte.Teacher?.TeacherName))
+                                            {
+                                                @tte.Teacher.TeacherName
+                                            }
+                                            else
+                                            {
+                                                <span class="not-assigned">Not Specified</span>
+                                            }
+                                        </td>
+                                        <td>@tte.Role</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="form-actions">
+                <a asp-page="/Eksamner/GetEksamner" class="btn btn-secondary">
+                    <span class="btn-icon">←</span>
+                    Back to Exam List
+                </a>
+                <div class="header-actions">
+                    <a asp-page="./Edit_Exam" asp-route-id="@exam.ExamId" class="btn-toggle btn-edit">Edit Exam</a>
+                    <a asp-page="./Delete_Exam" asp-route-id="@exam.ExamId" class="btn-toggle btn-delete">Delete Exam</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* DETAILS CONTAINER STYLES */
+    .details-container {
+        padding: 1.5rem;
+    }
+
+    /* INFO CARD GRID LAYOUT */
+    .info-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* INDIVIDUAL INFO CARD STYLING */
+    .info-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.2s ease;
+    }
+
+        .info-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+    .info-card-header {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .info-card-header h3 {
+            margin: 0;
+            color: #374151;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+    .info-card-content {
+        padding: 1.5rem;
+    }
+
+    /* INFO ROW STYLING */
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        font-weight: 500;
+        color: #6b7280;
+        font-size: 0.875rem;
+        flex: 1;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: #111827;
+        font-size: 0.95rem;
+        flex: 1;
+        text-align: right;
+        word-break: break-word;
+    }
+
+        /* SPECIAL VALUE STYLES */
+        .info-value.highlight {
+            color: #0066cc;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .info-value.description-text {
+            text-align: left;
+            line-height: 1.5;
+            color: #4b5563;
+            font-style: italic;
+        }
+
+        .info-value.date-value {
+            color: #059669;
+            font-weight: 500;
+        }
+
+    /* BADGE AND TAG STYLES */
+    .type-badge, .format-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .type-badge {
+        background-color: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .format-badge {
+        background-color: #f0fdf4;
+        color: #166534;
+    }
+
+    .class-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background-color: #f3e8ff;
+        color: #7c3aed;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.375rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .status-active {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-inactive {
+        background-color: #fef2f2;
+        color: #991b1b;
+    }
+
+    /* EMPTY STATE STYLES */
+    .not-assigned {
+        color: #9ca3af;
+        font-style: italic;
+        font-size: 0.875rem;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        opacity: 0.5;
+    }
+
+    /* ROOMS CARD STYLES - UPDATED */
+    .rooms-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .room-item {
+        padding: 1rem;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+        .room-item:hover {
+            background: #f0f9ff;
+            border-color: #b6d7e8;
+        }
+
+    .room-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .room-name {
+        font-weight: 600;
+        color: #374151;
+        font-size: 1rem;
+    }
+
+    .room-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .room-capacity {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .capacity-icon {
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    .empty-state-small {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+        .empty-state-small .empty-icon {
+            font-size: 2rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-small p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+    /* ACTION BUTTONS STYLES */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .btn-edit {
+        background-color: #e7f1ff;
+        color: #0066cc;
+        border: 1px solid #b6d7e8;
+    }
+
+    .btn-delete {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .btn-toggle:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .btn-icon {
+        font-size: 0.875rem;
+    }
+
+    /* RESPONSIVE DESIGN */
+    @@media (max-width: 768px) {
+        .info-card-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-row {
+            flex-direction: column;
+            gap: 0.25rem;
+            align-items: flex-start;
+        }
+
+        .info-value {
+            text-align: left;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .header-actions {
+            justify-content: center;
+        }
+
+        .room-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .room-details {
+            gap: 0.75rem;
+        }
+    }
+</style>
